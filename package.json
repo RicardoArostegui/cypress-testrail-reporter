@@ -1,6 +1,6 @@
 {
   "name": "cypress-testrail-cross-reporter",
-  "version": "1.2.31",
+  "version": "1.2.32",
   "description": "A Testrail reporter for cypress including TestRail API basic library. This is a fork from cypress-testrail-reporter from Milutin Savovic (mickosavovic@gmail.com)",
   "main": "index.js",
   "private": false,
