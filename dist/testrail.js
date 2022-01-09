@@ -37,14 +37,27 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TestRail = void 0;
-var axios = require('axios');
-var chalk = require('chalk');
+var chalk = require("chalk");
 var TestRail = /** @class */ (function () {
     function TestRail(options) {
         this.options = options;
         this.includeAll = true;
         this.caseIds = [];
+        console.log("Config===>", options);
         this.base = options.host + "/index.php?/api/v2";
+        if (this.options.proxy) {
+            var HttpsProxyAgent = require("https-proxy-agent");
+            var axiosDefaultConfig = {
+                proxy: false,
+                httpsAgent: new HttpsProxyAgent(options.proxyUrl),
+            };
+            console.log("TestRail Reporter Through Proxy");
+            this.axios = require("axios").create(axiosDefaultConfig);
+        }
+        else {
+            console.log("TestRail Reporter Through Internet");
+            this.axios = require("axios");
+        }
     }
     TestRail.prototype.getCases = function () {
         var url = this.base + "/get_cases/" + this.options.projectId + "&suite_id=" + this.options.suiteId;
@@ -54,14 +67,14 @@ var TestRail = /** @class */ (function () {
         if (this.options.filter) {
             url += "&filter=" + this.options.filter;
         }
-        return axios({
-            method: 'get',
+        return this.axios({
+            method: "get",
             url: url,
-            headers: { 'Content-Type': 'application/json' },
+            headers: { "Content-Type": "application/json" },
             auth: {
                 username: this.options.username,
-                password: this.options.password
-            }
+                password: this.options.password,
+            },
         })
             .then(function (response) { return response.data.cases.map(function (item) { return item.id; }); })
             .catch(function (error) { return console.error(error); });
@@ -81,10 +94,10 @@ var TestRail = /** @class */ (function () {
                         _a.caseIds = _b.sent();
                         _b.label = 2;
                     case 2:
-                        axios({
-                            method: 'post',
+                        this.axios({
+                            method: "post",
                             url: this.base + "/add_run/" + this.options.projectId,
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { "Content-Type": "application/json" },
                             auth: {
                                 username: this.options.username,
                                 password: this.options.password,
@@ -94,7 +107,7 @@ var TestRail = /** @class */ (function () {
                                 name: name,
                                 description: description,
                                 include_all: this.includeAll,
-                                case_ids: this.caseIds
+                                case_ids: this.caseIds,
                             }),
                         })
                             .then(function (response) {
@@ -107,10 +120,10 @@ var TestRail = /** @class */ (function () {
         });
     };
     TestRail.prototype.deleteRun = function () {
-        axios({
-            method: 'post',
+        this.axios({
+            method: "post",
             url: this.base + "/delete_run/" + this.runId,
-            headers: { 'Content-Type': 'application/json' },
+            headers: { "Content-Type": "application/json" },
             auth: {
                 username: this.options.username,
                 password: this.options.password,
@@ -119,10 +132,10 @@ var TestRail = /** @class */ (function () {
     };
     TestRail.prototype.publishResults = function (results) {
         var _this = this;
-        return axios({
-            method: 'post',
+        return this.axios({
+            method: "post",
             url: this.base + "/add_results_for_cases/" + this.runId,
-            headers: { 'Content-Type': 'application/json' },
+            headers: { "Content-Type": "application/json" },
             auth: {
                 username: this.options.username,
                 password: this.options.password,
@@ -130,22 +143,22 @@ var TestRail = /** @class */ (function () {
             data: JSON.stringify({ results: results }),
         })
             .then(function (response) {
-            console.log('\n', chalk.magenta.underline.bold('(TestRail Reporter)'));
-            console.log('\n', " - Results are published to " + chalk.magenta(_this.options.host + "/index.php?/runs/view/" + _this.runId), '\n');
+            console.log("\n", chalk.magenta.underline.bold("(TestRail Reporter)"));
+            console.log("\n", " - Results are published to " + chalk.magenta(_this.options.host + "/index.php?/runs/view/" + _this.runId), "\n");
         })
             .catch(function (error) { return console.error(error); });
     };
     TestRail.prototype.closeRun = function () {
-        axios({
-            method: 'post',
+        this.axios({
+            method: "post",
             url: this.base + "/close_run/" + this.runId,
-            headers: { 'Content-Type': 'application/json' },
+            headers: { "Content-Type": "application/json" },
             auth: {
                 username: this.options.username,
                 password: this.options.password,
             },
         })
-            .then(function () { return console.log('- Test run closed successfully'); })
+            .then(function () { return console.log("- Test run closed successfully"); })
             .catch(function (error) { return console.error(error); });
     };
     return TestRail;

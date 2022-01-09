@@ -8,6 +8,8 @@ export interface TestRailOptions {
   includeAllInTestRun?: boolean;
   groupId?: number;
   filter?: string;
+  proxy?: boolean;
+  proxyUrl?: string;
 }
 
 export enum Status {
